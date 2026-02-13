@@ -1,20 +1,19 @@
 import java.util.Scanner;
 
 public class RetirementCalculatorProject {
- {
 	
 	// Constants for compounding periods
 	private static final int ANNUALLY = 1;
 	private static final int MONTHLY = 12;
 	private static final int DAILY = 365;
 	
-	public static void main(string[] args) {
-		Scanner sc = new scanner(System.in);
+	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
 				boolean runAgain = true;
 				
 				while (runAgain) {
 					runProgram(sc);
-					runAgain = askrunagain(sc);
+					runAgain = askRunAgain(sc);
 				}
 				
 				System.out.println("\nThank you for using the Retirement Growth Simulator!");
@@ -31,9 +30,10 @@ public class RetirementCalculatorProject {
 		
 		// Get user inputs
 		int currentAge = readIntInRange(sc, "Enter your current age (18-100): ", 18, 100);
-		int retirementAge = readIntInRange(sc, "Enter your retirement age (" + (currentAge + 1) + "-100): ");
+		int retirementAge = readIntInRange(sc, "Enter your retirement age (" + (currentAge + 1) + "-100): ", currentAge + 1, 100);
 		double currentBalance = readDoubleInRange(sc, "Enter current balance ($0-$100,000): ", 0.0, 100000.0);
 		double annualContribution = readDoubleInRange(sc, "Enter annual contribution ($0-$100,000): ", 0.0, 100000.0);
+		double annualRate = readDoubleInRange(sc, "Enter annual interest rate (0-15%): ", 0.0, 15.0);
 		int compoundingPeriod = readCompoundingChoice(sc);
 		double contributionIncrease = readDoubleInRange(sc, "Enter annual contribution increase rate (0-15%): ", 0.0, 15.0);
 		
@@ -48,7 +48,7 @@ public class RetirementCalculatorProject {
 		while (true) {
 			System.out.print(prompt);
 			try {
-				String input = sc.nextLine().trim)_;
+				String input = sc.nextLine().trim();
 				int value = Integer.parseInt(input);
 
 				if(value >= min && value <= max) {
@@ -57,7 +57,7 @@ public class RetirementCalculatorProject {
 					System.out.println("Error: Please enter a value between " + min + " and " + max + ".");
 				}
 			} catch (NumberFormatException e) {
-				System.out.printLn("Error: please enter a valid integer.");
+				System.out.println("Error: please enter a valid integer.");
 			}
 		}
 	}
@@ -85,7 +85,7 @@ public class RetirementCalculatorProject {
 	/**
 	 * Reads compounding choice from user(1=Annually, 12=Monthly, 365=Daily)
 	 */
-	private static int readCompundingChoice(Scanner sc) {
+	private static int readCompoundingChoice(Scanner sc) {
 		while (true) {
 			System.out.println("Choose compounding period:");
 			System.out.println("1. Annually");
@@ -101,14 +101,16 @@ public class RetirementCalculatorProject {
 					case 1: return ANNUALLY;
 					case 2: return MONTHLY;
 					case 3: return DAILY;
-
-					System.out.println("Error: Please enter 1, 2, or 3.");
-				} catch (NumberFormatException e) {
-					System.out.println("Error: Please enter a valid menu choice.");
+					default:
+						System.out.println("Error: Please enter 1, 2, or 3.");
 				}
+			
+			} catch (NumberFormatException e) {
+				System.out.println("Error: Please enter a valid menu choice.");
 			}
-		}
-
+		 }
+	 }
+	
 		/**
 		 * Runs the retirement simulation and prints results
 		 */
@@ -119,7 +121,7 @@ public class RetirementCalculatorProject {
 			System.out.println("------------------------------");
 			System.out.println("Current age: " + currentAge);
 			System.out.println("Retirement age: " + retirementAge);
-			System.out.printf(Current Balance: $%.2f%n", currentBalance);
+			System.out.printf("Current Balance: $%.2f%n", currentBalance);
 			System.out.printf("Annual rate: %.2f%%%n", annualRate);
 
 			String compoundingType = "";
@@ -133,7 +135,7 @@ public class RetirementCalculatorProject {
 			
 			// Print table header
 			System.out.println("\nYear-by-Year Projection");
-			System.out.println("----------------------------------------------------------------------------);
+			System.out.println("----------------------------------------------------------------------------");
 			System.out.println("Age / Start Balance / Contributions / Intrest Earned / End Balance");
 			System.out.println("----------------------------------------------------------------------------");
 
@@ -141,29 +143,64 @@ public class RetirementCalculatorProject {
 			double balance = currentBalance;
 			double totalContributions = 0.0;
 			double totalInterest = 0.0;
-			double currentContribution = annualcontribution;
+			double currentContribution = annualContribution;
 
 			// Convert rates to decimals
 			double rateDecimal = annualRate / 100.0;
-			
-		}
+			double increaseDecimal = contributionIncrease / 100.0;
+
+			// Simulate each year until retirement
+			int yearsToSimulate = retirementAge - currentAge;
+			for (int year = 1; year <= yearsToSimulate; year++) {
+				double startBalance = balance;
+				double contributionsThisYear = currentContribution;
+
+				// Calculate intrest for this year with compounding
+				double contributionPerPeriod = contributionsThisYear / compoundingPeriod;
+				double ratePerPeriod = rateDecimal / compoundingPeriod;
+
+				for (int period = 0; period < compoundingPeriod; period++) {
+					balance += contributionPerPeriod; // Add contribution for this period
+					balance += balance * ratePerPeriod; // Add interest for this period
 				}
-				}
+
+				double endBalance = balance;
+				double interestEarned = endBalance - startBalance - contributionsThisYear;
+
+				// Print row
+				int ageAtEndOfYear = currentAge + year;
+				System.out.printf("%-4d / $%-15.2f / $%-15.2f / $%-15.2f / $%.2f%n", ageAtEndOfYear, startBalance, contributionsThisYear, interestEarned, endBalance);
+
+				// Update totals and contributions for next year
+				totalContributions += contributionsThisYear;
+				totalInterest += interestEarned;
+				currentContribution += currentContribution * increaseDecimal;
 			}
+
+			// print table footer and summary
+			System.out.println("---------------------------------------------------------------------------------");
+			System.out.println("\nSummary");
+			System.out.println("------------");
+			System.out.printf("Total Contributions: $%.2f%n", totalContributions);
+			System.out.printf("Total Interest Earned: $%.2f%n", totalInterest);
+			System.out.printf("Ending Balance at Retirement: $%.2f%n", balance);
 		}
-	}	
-	 }
-				}
+
+		/**
+		 * Asks if user wants to run again
+		 */
+		private static boolean askRunAgain(Scanner sc) {
+			while (true) {
+				System.out.print("\nWould you like to run another simulation? (Y/N): ");
+			String input = sc.nextLine().trim().toUpperCase();
+		
+			if (input.equals("Y") || input.equals("YES")) {
+				return true;
+			} else if (input.equals("N") || input.equals("NO")) {
+				return false;
+			} else {
+			System.out.println("Invalid input. Please enter 'Y' for Yes or 'N' for No.");
 			}
 		}
 	}
-			}
-				}
-				}
-			}
-		}
-	}
-
-}
-
 }
